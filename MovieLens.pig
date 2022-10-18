@@ -1,3 +1,5 @@
+-- THIS FILE CONTAINS CODE FOR CLEANING DATA AND RUNNING QUERIES IN PIG.
+
 -- Start by cleaning the MovieLens data
 --Cleaning movies.csv file
 movies = LOAD 'movies.csv' USING PigStorage(',') as (movieId:chararray, title:chararray, genres:chararray);
