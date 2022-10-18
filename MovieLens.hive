@@ -1,0 +1,144 @@
+-- THIS FILE CONTAINS THE HIVE QUERIES FOR MOVIELENS DATASET
+
+-- Need to read in the data from HDFS
+-- First need to create tables for the movies data, the ratings data and the joined movies and ratings data
+
+-- Create movies table:
+CREATE TABLE IF NOT EXISTS movies (movieId int,title string,year int,genres string )
+COMMENT 'Movie Table'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+-- Load the movie data from HDFS into the table
+load data inpath '/user/hive/movies/part-m-00000' into table movies;
+
+-- Create the ratings table:
+CREATE TABLE IF NOT EXISTS ratings (userId int,movieId int, rating int)
+COMMENT 'Ratings table'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+-- Load the ratings data from HDFS into the table
+load data inpath '/user/hive/ratings/part-m-00000' into table ratings;
+
+-- Create the joined table which will contain both movies and ratings data
+CREATE TABLE IF NOT EXISTS joined (movieId int,title string,year int, genres string,userId int,rating int)
+COMMENT 'Joined Table'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+-- Load the data into this table
+load data inpath '/user/hive/joined/part-r-00000' into table joined;
+
+-- QUERY 1
+-- Looking at the movies table and the ratings table
+-- Retrieving data on the title and the total count of the ratings for each title
+-- This will return the title of the movie with the highest number of ratings. 
+SELECT title, count(rating) count_rating
+FROM movies JOIN ratings
+ON movies.movieId = ratings.movieId
+GROUP BY title
+ORDER BY count_rating DESC
+LIMIT 3;
+
+-- QUERY 2
+-- Looking at the movies table and the ratings table
+-- Need to calculate the average rating for each movie
+-- If the average rating = 5.0 then the movie only got 5 star ratings
+SELECT title, avg(rating) average_rating
+FROM movies JOIN ratings
+ON movies.movieId = ratings.movieId
+GROUP BY title
+ORDER BY average_rating DESC
+LIMIT 10;
+-- Mulitple results are returned with 5.0 average ratings
+
+-- QUERY 3
+-- Looking at only the ratings table as dont need movie titles or genres
+-- Get the average rating for each userId
+SELECT userId, avg(rating) user_rating
+FROM ratings
+GROUP BY userId
+ORDER BY user_rating DESC
+LIMIT 1;
+-- Returns the user with the highest average score.
+
+-- QUERY 4
+-- Only need to look at ratings table data
+-- Need to count the number of ratings made for each rating and group by rating
+SELECT rating, count(rating) count_stars
+FROM ratings
+GROUP BY rating
+ORDER BY rating DESC;
+
+-- QUERY 5
+-- Similar to query 4 but order the results by count_stars instead
+-- as this will give the most popular rating first and limit results to 1.
+SELECT rating, count(rating) count_stars
+FROM ratings
+GROUP BY rating
+ORDER BY count_stars DESC
+LIMIT 1;
+
+-- QUERY 6
+-- Decided to use the joined data for this. 
+-- Need to look at the count of each type of genres listed 
+-- A totel of 18 genres were used.
+-- Adventure, Romance, Crime, Animation, Action, Mystery, Children, Thriller, Sci-Fi
+-- Comedy, Horror, War, Fantasy, Drama, Musical, Documentary, Film-noir, Western
+
+-- Going to look at each genre individually 
+-- Adventure
+SELECT SUM(CASE WHEN genres LIKE '%Adventure%' THEN 1 ELSE 0 END) AS adventure
+FROM joined;
+-- Romance
+SELECT SUM(CASE WHEN genres LIKE '%Romance%' THEN 1 ELSE 0 END) AS romance
+FROM joined;
+-- Crime
+SELECT SUM(CASE WHEN genres LIKE '%Crime%' THEN 1 ELSE 0 END) AS crime 
+FROM joined;
+-- Animation
+SELECT SUM(CASE WHEN genres LIKE '%Animation%' THEN 1 ELSE 0 END) AS animation
+FROM joined;
+-- Action
+SELECT SUM(CASE WHEN genres LIKE '%Action%' THEN 1 ELSE 0 END) AS action
+FROM joined;
+-- Mystery
+SELECT SUM(CASE WHEN genres LIKE '%Mystery%' THEN 1 ELSE 0 END) AS mystery
+FROM joined;
+-- Children
+SELECT SUM(CASE WHEN genres LIKE '%Children%' THEN 1 ELSE 0 END) AS children
+FROM joined;
+-- Thriller
+SELECT SUM(CASE WHEN genres LIKE '%Thriller%' THEN 1 ELSE 0 END) AS thriller
+FROM joined;
+-- Sci-Fi
+SELECT SUM(CASE WHEN genres LIKE '%Sci-Fi%' THEN 1 ELSE 0 END) AS scifi
+FROM joined;
+-- Comedy
+SELECT SUM(CASE WHEN genres LIKE '%Comedy%' THEN 1 ELSE 0 END) AS comedy
+FROM joined;
+-- Horror
+SELECT SUM(CASE WHEN genres LIKE '%Horror%' THEN 1 ELSE 0 END) AS horror
+FROM joined;
+-- War
+SELECT SUM(CASE WHEN genres LIKE '%War%' THEN 1 ELSE 0 END) AS war
+FROM joined;
+-- Fantasy
+SELECT SUM(CASE WHEN genres LIKE '%Fantasy%' THEN 1 ELSE 0 END) AS fantasy
+FROM joined;
+-- Drama
+SELECT SUM(CASE WHEN genres LIKE '%Drama%' THEN 1 ELSE 0 END) AS drama
+FROM joined;
+-- Musical
+SELECT SUM(CASE WHEN genres LIKE '%Musical%' THEN 1 ELSE 0 END) AS musical
+FROM joined;
+-- Documentary
+SELECT SUM(CASE WHEN genres LIKE '%Documentary%' THEN 1 ELSE 0  END) AS documentary
+FROM joined;
+-- Film-noir
+SELECT SUM(CASE WHEN genres LIKE '%Film-Noir%' THEN 1 ELSE 0 END) AS filmnoir
+FROM joined;
+-- Western
+SELECT SUM(CASE WHEN genres LIKE '%Western%' THEN 1 ELSE 0 END) AS western
+FROM joined;
